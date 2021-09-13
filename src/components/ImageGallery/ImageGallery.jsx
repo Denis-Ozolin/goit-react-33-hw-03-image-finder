@@ -1,5 +1,5 @@
-export const ImageGallery = ({ item }) => (
-  <ul className="ImageGallery">
-    <li>{item}</li>
+export const ImageGallery = ({ children }) => (
+  <ul className="ImageGallery" display="flex">
+    {children}
   </ul>
 );
