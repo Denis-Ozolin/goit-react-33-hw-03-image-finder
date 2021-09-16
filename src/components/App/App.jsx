@@ -4,18 +4,24 @@ import { Searchbar } from 'components/Searchbar/Searchbar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Button } from 'components/Button/Button';
+import { Modal } from 'components/Modal/Modal';
+import { StyledApp } from './App.styled';
 
 export class App extends Component {
   state = {
-    searchValue: '',
+    searchQuery: '',
     page: 0,
     cardSet: [],
+    showModal: false,
+    selectedImage: '',
   };
 
   componentDidUpdate(_, prevState) {
-    if (this.state.page !== prevState.page) {
+    const { searchQuery, page } = this.state;
+
+    if (page !== prevState.page) {
       fetch(
-        `https://pixabay.com/api/?q=${this.state.searchValue}&page=${this.state.page}&key=20731913-04720c2299aa0ca3b12520f7d&image_type=photo&orientation=horizontal&per_page=12`,
+        `https://pixabay.com/api/?q=${searchQuery}&page=${page}&key=20731913-04720c2299aa0ca3b12520f7d&image_type=photo&orientation=horizontal&per_page=12`,
       )
         .then(res => res.json())
         .then(res =>
@@ -26,32 +32,49 @@ export class App extends Component {
     }
   }
 
-  searchSubmitHandler = data => {
+  onSubmit = data => {
     this.setState({
       cardSet: [],
-      searchValue: data,
-      page: 1,
+      searchQuery: data,
+    });
+
+    this.setState(p => ({ page: p.page + 1 }));
+  };
+
+  onloadMore = () => {
+    this.setState(p => ({ page: p.page + 1 }));
+
+    // window.scrollTo({
+    //   top: document.documentElement.scrollHeight,
+    //   behavior: 'smooth',
+    // });
+  };
+
+  openModal = image => {
+    this.setState({
+      showModal: true,
+      selectedImage: image,
     });
   };
 
-  loadMoreHandler = () => {
-    this.setState(p => ({ page: p.page + 1 }));
-
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
+  closeModal = () => {
+    this.setState({
+      showModal: false,
     });
   };
 
   render() {
+    const { cardSet, page, showModal, selectedImage } = this.state;
+
     return (
-      <>
-        <Searchbar onSubmit={this.searchSubmitHandler} />
-        <ImageGallery item={this.state.searchValue}>
-          <ImageGalleryItem items={this.state.cardSet} />
+      <StyledApp>
+        <Searchbar onSubmit={this.onSubmit} />
+        <ImageGallery>
+          <ImageGalleryItem items={cardSet} onClick={this.openModal} />
         </ImageGallery>
-        {this.state.page >= 1 && <Button onClick={this.loadMoreHandler} />}
-      </>
+        {page && cardSet.length && <Button onClick={this.onloadMore} />}
+        {showModal && <Modal image={selectedImage} closeModal={this.closeModal} />}
+      </StyledApp>
     );
   }
 }
