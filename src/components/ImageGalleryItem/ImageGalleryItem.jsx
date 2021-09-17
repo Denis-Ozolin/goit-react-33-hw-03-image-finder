@@ -7,5 +7,3 @@ export const ImageGalleryItem = ({ items, onClick }) => {
     </GalleryItem>
   ));
 };
-
-// largeImageURL

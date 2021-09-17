@@ -7,7 +7,7 @@ export const LoadMoreBtn = styled.button`
   transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
   display: inline-block;
-  color: #fff;
+  color: #616160;
   border: 0;
   text-decoration: none;
   cursor: pointer;
