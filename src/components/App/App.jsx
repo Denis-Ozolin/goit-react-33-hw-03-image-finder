@@ -1,50 +1,72 @@
 import { Component } from 'react';
+import { apiSettings } from '../../services/apiSettings';
 import { Searchbar } from 'components/Searchbar/Searchbar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Button } from 'components/Button/Button';
 import { Spinner } from 'components/Loader/Loader';
 import { Modal } from 'components/Modal/Modal';
+import { WrongData } from 'components/WrongData/WrongData';
 import { StyledApp } from './App.styled';
 
 export class App extends Component {
   state = {
     searchQuery: '',
-    page: 0,
+    currentPage: 0,
     cardSet: [],
     selectedImage: null,
     loading: false,
   };
 
   componentDidUpdate(_, prevState) {
-    const { searchQuery, page } = this.state;
-    const URL = `https://pixabay.com/api/?q=${searchQuery}&page=${page}&key=20731913-04720c2299aa0ca3b12520f7d&image_type=photo&orientation=horizontal&per_page=12`;
+    const { searchQuery, currentPage } = this.state;
 
-    if (page !== prevState.page || searchQuery !== prevState.searchQuery) {
-      this.setState({ loading: true });
-
-      fetch(URL)
-        .then(res => res.json())
-        .then(res =>
-          this.setState(p => ({
-            cardSet: [...p.cardSet, ...res.hits],
-          })),
-        )
-        .catch(e => console.log(e))
-        .finally(() => this.setState({ loading: false }));
+    if (currentPage !== prevState.currentPage || searchQuery !== prevState.searchQuery) {
+      this.fetchImages(searchQuery, currentPage);
     }
   }
+
+  fetchImages = (query, page) => {
+    const { BASE_URL, KEY } = apiSettings;
+
+    this.setState({ loading: true });
+
+    fetch(
+      `${BASE_URL}?q=${query}&page=${page}&key=${KEY}&image_type=photo&orientation=horizontal&per_page=12`,
+    )
+      .then(res => res.json())
+      .then(res => this.onFillColection(res.hits))
+      .catch(e => console.log(e))
+      .finally(() => this.setState({ loading: false }));
+  };
+
+  onFillColection = newCollection => {
+    this.setState(prevState => ({
+      cardSet: [...prevState.cardSet, ...newCollection],
+    }));
+
+    this.onScrollPage();
+  };
+
+  onScrollPage = () => {
+    if (this.state.currentPage > 1) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   onSubmit = data => {
     this.setState({
       cardSet: [],
       searchQuery: data,
-      page: 1,
+      currentPage: 1,
     });
   };
 
   onloadMore = () => {
-    this.setState(p => ({ page: p.page + 1 }));
+    this.setState(prevState => ({ currentPage: prevState.currentPage + 1 }));
   };
 
   onSelectImage = image => {
@@ -60,7 +82,7 @@ export class App extends Component {
   };
 
   render() {
-    const { cardSet, selectedImage, loading } = this.state;
+    const { currentPage, cardSet, selectedImage, loading } = this.state;
 
     return (
       <StyledApp>
@@ -69,6 +91,9 @@ export class App extends Component {
           <ImageGalleryItem items={cardSet} onClick={this.onSelectImage} />
         </ImageGallery>
         {loading && <Spinner />}
+        {currentPage === 1 && cardSet.length === 0 && !loading && (
+          <WrongData message="No images for this request." />
+        )}
         {cardSet.length > 0 && <Button onClick={this.onloadMore} />}
         {selectedImage && <Modal image={selectedImage} closeModal={this.onCloseModal} />}
       </StyledApp>
