@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { apiSettings } from '../../services/apiSettings';
+import { getImages } from '../../services/apiSettings';
 import { Searchbar } from 'components/Searchbar/Searchbar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
@@ -27,16 +27,10 @@ export class App extends Component {
   }
 
   fetchImages = (query, page) => {
-    const { BASE_URL, KEY } = apiSettings;
-
     this.setState({ loading: true });
 
-    fetch(
-      `${BASE_URL}?q=${query}&page=${page}&key=${KEY}&image_type=photo&orientation=horizontal&per_page=12`,
-    )
-      .then(res => res.json())
+    getImages(query, page)
       .then(res => this.onFillColection(res.hits))
-      .catch(e => console.log(e))
       .finally(() => this.setState({ loading: false }));
   };
 
