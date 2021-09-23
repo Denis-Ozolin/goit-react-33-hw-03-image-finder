@@ -31,8 +31,10 @@ export class App extends Component {
 
     getImages(query, page)
       .then(res => {
-        this.setState(prevState => ({ cardSet: [...prevState.cardSet, ...res.hits] }));
-        this.onScrollPage();
+        this.setState(
+          prevState => ({ cardSet: [...prevState.cardSet, ...res.hits] }),
+          () => this.onScrollPage(),
+        );
       })
       .finally(() => this.setState({ loading: false }));
   };
